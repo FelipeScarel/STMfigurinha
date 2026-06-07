@@ -32,13 +32,6 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
 
   if (!order) notFound();
 
-  const itensTexto = order.items
-    .map((item) => {
-      const nome = item.itemType === "personalizado" ? "Figurinha Personalizada" : "Produto";
-      return `- ${nome} x${item.quantity} (${formatCurrency(item.subtotal)})`;
-    })
-    .join("%0A");
-
   const isDinheiro = pagamento === "dinheiro";
   const isPix = pagamento === "pix";
   const protocolo = order.id.slice(-8).toUpperCase();
@@ -48,26 +41,35 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
   let textoWhats = "";
 
   if (isDinheiro) {
-    textoWhats =
-      `*NOVO PEDIDO - STICKERSHOP*` +
-      `%0A%0A*Protocolo:* #${protocolo}` +
-      `%0A*Total:* ${totalStr}` +
-      `%0A*Pagamento:* Dinheiro` +
-      `%0A%0A*ITENS:*%0A${itensTexto}` +
-      `%0A%0A*ACESSAR ADMIN:*` +
-      `%0A👉 https://stickershop.onrender.com/admin` +
-      `%0A📧 admin@stickershop.com.br` +
-      `%0A🔑 admin123` +
-      `%0A%0A_Entre no painel admin, veja o pedido e organize a producao!_`;
+    textoWhats = encodeURIComponent(
+      `*NOVO PEDIDO - STICKERSHOP*\n\n` +
+      `*Protocolo:* #${protocolo}\n` +
+      `*Total:* ${totalStr}\n` +
+      `*Pagamento:* Dinheiro\n\n` +
+      `*ITENS:*\n${order.items.map((item) => {
+        const nome = item.itemType === "personalizado" ? "Figurinha Personalizada" : "Produto";
+        return `- ${nome} x${item.quantity} (${formatCurrency(item.subtotal)})`;
+      }).join("\n")}\n\n` +
+      `*ACESSAR ADMIN:*\n` +
+      `👉 ${process.env.AUTH_URL || "https://stickershop.onrender.com"}/admin\n` +
+      `📧 admin@stickershop.com.br\n` +
+      `🔑 admin123\n\n` +
+      `_Entre no painel admin, veja o pedido e organize a produção!_`
+    );
   } else {
-    textoWhats =
-      `*PEDIDO PAGO - STICKERSHOP*` +
-      `%0A%0A*Protocolo:* #${protocolo}` +
-      `%0A*Valor:* ${totalStr}` +
-      `%0A*Pagamento:* Pix (Nubank)` +
-      `%0A*Chave Pix:* ${PIX_CHAVE}` +
-      `%0A%0A*ITENS:*%0A${itensTexto}` +
-      `%0A%0A_Comprovante de pagamento enviado pelo cliente._`;
+    textoWhats = encodeURIComponent(
+      `*PEDIDO PAGO - STICKERSHOP*\n\n` +
+      `*Protocolo:* #${protocolo}\n` +
+      `*Valor:* ${totalStr}\n` +
+      `*Pagamento:* Pix (Nubank)\n` +
+      `*Chave Pix:* ${PIX_CHAVE}\n\n` +
+      `*ITENS:*\n${order.items.map((item) => {
+        const nome = item.itemType === "personalizado" ? "Figurinha Personalizada" : "Produto";
+        return `- ${nome} x${item.quantity} (${formatCurrency(item.subtotal)})`;
+      }).join("\n")}\n\n` +
+      `_Comprovante de pagamento enviado pelo cliente._`
+    );
+  }
   }
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMERO}?text=${textoWhats}`;

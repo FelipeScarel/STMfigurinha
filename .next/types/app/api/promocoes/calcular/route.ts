@@ -1,4 +1,4 @@
-// File: c:\Users\guilh\OneDrive\Documentos\autocad\Área de Trabalho\Figurinha\src\app\api\promocoes\calcular\route.ts
+// File: C:\Users\guilh\OneDrive\Documentos\autocad\Área de Trabalho\Figurinha\src\app\api\promocoes\calcular\route.ts
 import * as entry from '../../../../../../src/app/api/promocoes/calcular/route.js'
 import type { NextRequest } from 'next/server.js'
 

@@ -1,4 +1,4 @@
-// File: c:\Users\guilh\OneDrive\Documentos\autocad\Área de Trabalho\Figurinha\src\app\(auth)\login\page.tsx
+// File: C:\Users\guilh\OneDrive\Documentos\autocad\Área de Trabalho\Figurinha\src\app\(auth)\login\page.tsx
 import * as entry from '../../../../../src/app/(auth)/login/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
