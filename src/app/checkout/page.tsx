@@ -3,13 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, CreditCard, QrCode, Barcode, Check, Banknote } from "lucide-react";
+import { ArrowLeft, QrCode, Check, Banknote, Copy, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/stores/cart";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
+
+const PIX_CHAVE = "19987203886"; // Chave Pix Nubank - celular
+const WHATSAPP_NUMERO = "5519987203886";
 
 type Step = "review" | "payment";
 
@@ -19,7 +22,7 @@ export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCartStore();
   const [step, setStep] = useState<Step>("review");
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card" | "boleto" | "dinheiro">("pix");
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "dinheiro">("pix");
   const [discounts, setDiscounts] = useState<any>(null);
 
   useEffect(() => {
@@ -36,6 +39,11 @@ export default function CheckoutPage() {
 
   const totalDiscount = (discounts?.discountTotal || 0) + (discounts?.couponDiscount || 0);
   const total = subtotal() - totalDiscount;
+
+  function copiarChavePix() {
+    navigator.clipboard.writeText(PIX_CHAVE);
+    toast.success("Chave Pix copiada!");
+  }
 
   async function handlePlaceOrder() {
     setLoading(true);
@@ -58,7 +66,10 @@ export default function CheckoutPage() {
         }),
       });
 
-      if (!res.ok) throw new Error((await res.json()).error || "Erro");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Erro");
+      }
 
       const order = await res.json();
       clearCart();
@@ -125,33 +136,67 @@ export default function CheckoutPage() {
       {step === "payment" && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Forma de Pagamento</h2>
+
           <div className="space-y-2">
-            {[
-              { id: "pix" as const, label: "Pix", icon: QrCode, desc: "Pagamento instantâneo" },
-              { id: "dinheiro" as const, label: "Dinheiro", icon: Banknote, desc: "Pagamento na entrega ou combinado via WhatsApp" },
-              { id: "card" as const, label: "Cartão de Crédito", icon: CreditCard, desc: "Até 3x sem juros" },
-              { id: "boleto" as const, label: "Boleto", icon: Barcode, desc: "Vencimento em 3 dias" },
-            ].map((method) => (
-              <button key={method.id}
-                onClick={() => setPaymentMethod(method.id)}
-                className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all ${
-                  paymentMethod === method.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                }`}
-              >
-                <method.icon className="h-5 w-5" />
-                <div className="text-left">
-                  <p className="font-medium text-sm">{method.label}</p>
-                  <p className="text-xs text-muted-foreground">{method.desc}</p>
-                </div>
-                {paymentMethod === method.id && <Check className="h-5 w-5 text-primary ml-auto" />}
-              </button>
-            ))}
+            <button
+              onClick={() => setPaymentMethod("pix")}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                paymentMethod === "pix" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+              }`}
+            >
+              <QrCode className="h-5 w-5" />
+              <div className="text-left flex-1">
+                <p className="font-medium text-sm">Pix</p>
+                <p className="text-xs text-muted-foreground">Pagamento instantâneo via Nubank</p>
+              </div>
+              {paymentMethod === "pix" && <Check className="h-5 w-5 text-primary" />}
+            </button>
+
+            <button
+              onClick={() => setPaymentMethod("dinheiro")}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                paymentMethod === "dinheiro" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+              }`}
+            >
+              <Banknote className="h-5 w-5" />
+              <div className="text-left flex-1">
+                <p className="font-medium text-sm">Dinheiro</p>
+                <p className="text-xs text-muted-foreground">Pagamento combinado via WhatsApp</p>
+              </div>
+              {paymentMethod === "dinheiro" && <Check className="h-5 w-5 text-primary" />}
+            </button>
           </div>
 
+          {/* Pix info */}
+          {paymentMethod === "pix" && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2 text-purple-800">
+                <QrCode className="h-5 w-5" />
+                <span className="font-semibold">Pix — Chave do Nubank</span>
+              </div>
+              <div className="bg-white rounded-lg p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Chave Pix (celular)</p>
+                    <p className="font-mono font-bold text-lg">{PIX_CHAVE}</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={copiarChavePix}>
+                  <Copy className="h-3 w-3 mr-1" /> Copiar
+                </Button>
+              </div>
+              <p className="text-xs text-purple-700">
+                Após finalizar, faça o Pix no valor de {formatCurrency(total)}. O pedido será confirmado após o pagamento.
+              </p>
+            </div>
+          )}
+
+          {/* Dinheiro info */}
           {paymentMethod === "dinheiro" && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
               Ao finalizar, você será redirecionado para enviar os detalhes do pedido diretamente
-              pelo WhatsApp para o dono da loja. O pagamento é combinado diretamente com ele.
+              pelo WhatsApp. O pagamento é combinado diretamente com o vendedor.
             </div>
           )}
 

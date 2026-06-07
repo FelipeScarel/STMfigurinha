@@ -1,28 +1,31 @@
-export const runtime = "nodejs";
-
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const user = req.auth?.user as { role?: string } | undefined;
+
+  // Lê o token da sessão NextAuth do cookie
+  const sessionCookie =
+    req.cookies.get("authjs.session-token")?.value ||
+    req.cookies.get("__Secure-authjs.session-token")?.value;
 
   // Protege rotas admin
   if (pathname.startsWith("/admin")) {
-    if (!user || user.role !== "admin") {
+    if (!sessionCookie) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
+    // O role check é feito pelas páginas admin (server-side)
   }
 
-  // Protege rotas do cliente
-  if (pathname.startsWith("/meus-pedidos") || pathname.startsWith("/checkout")) {
-    if (!user) {
+  // Protege checkout e meus-pedidos
+  if (pathname.startsWith("/checkout") || pathname.startsWith("/meus-pedidos")) {
+    if (!sessionCookie) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/admin/:path*", "/meus-pedidos/:path*", "/checkout/:path*"],

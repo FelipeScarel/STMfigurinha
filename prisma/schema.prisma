@@ -131,7 +131,7 @@ model CustomUpload {
 // ======================== PEDIDOS ========================
 model Order {
   id              String   @id @default(cuid())
-  userId          String
+  userId          String?
   status          String   @default("aguardando_pagamento")
   // "aguardando_pagamento" | "pago" | "em_producao" | "enviado" | "entregue" | "cancelado"
   subtotal        Float
@@ -154,7 +154,7 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user          User           @relation(fields: [userId], references: [id])
+  user          User?          @relation(fields: [userId], references: [id])
   coupon        Coupon?        @relation(fields: [couponId], references: [id])
   promotionRule PromotionRule? @relation(fields: [promotionRuleId], references: [id])
   items         OrderItem[]

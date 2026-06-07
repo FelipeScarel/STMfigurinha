@@ -6,7 +6,10 @@ import { calculateDiscounts } from "@/lib/promocao-engine";
 export async function POST(req: Request) {
   try {
     const user = await getSessionUser();
-    const userId = user && "id" in user ? (user as { id: string }).id : null;
+    if (!user || !("id" in user)) {
+      return NextResponse.json({ error: "Faça login para comprar." }, { status: 401 });
+    }
+    const userId = (user as { id: string }).id;
 
     const { items, couponId, promotionRuleId } = await req.json();
 
@@ -35,7 +38,7 @@ export async function POST(req: Request) {
 
     const order = await prisma.order.create({
       data: {
-        userId: userId || "guest",
+        userId: userId,
         status: "aguardando_pagamento",
         subtotal,
         discountTotal: totalDiscount,
