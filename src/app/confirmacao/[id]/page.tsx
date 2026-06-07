@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/db";
 import { formatCurrency, orderStatusLabel, orderStatusColor } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ pagamento?: string }>;
@@ -32,48 +34,43 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
 
   const itensTexto = order.items
     .map((item) => {
-      const nome = item.itemType === "personalizado" ? "🎨 Figurinha Personalizada" : "📦 Produto";
-      return `  ${nome} x${item.quantity} — ${formatCurrency(item.subtotal)}`;
+      const nome = item.itemType === "personalizado" ? "Figurinha Personalizada" : "Produto";
+      return `- ${nome} x${item.quantity} (${formatCurrency(item.subtotal)})`;
     })
-    .join("\n");
+    .join("%0A");
 
   const isDinheiro = pagamento === "dinheiro";
   const isPix = pagamento === "pix";
   const protocolo = order.id.slice(-8).toUpperCase();
+  const totalStr = formatCurrency(order.total);
 
-  const baseMensagem = encodeURIComponent(
-    `🛒 *NOVO PEDIDO — STICKERSHOP*\n\n` +
-    `📋 *Protocolo:* #${protocolo}\n` +
-    `💰 *Total:* ${formatCurrency(order.total)}\n` +
-    `💵 *Pagamento:* ${isDinheiro ? "Dinheiro" : "Pix"}\n\n` +
-    `📦 *ITENS:*\n${itensTexto}\n`
-  );
+  // Mensagem menor e com %0A em vez de \n pra garantir quebra de linha no wa.me
+  let textoWhats = "";
 
-  const mensagemDinheiro = encodeURIComponent(
-    `🛒 *NOVO PEDIDO — STICKERSHOP*\n\n` +
-    `📋 *Protocolo:* #${protocolo}\n` +
-    `💰 *Total:* ${formatCurrency(order.total)}\n` +
-    `💵 *Pagamento:* Dinheiro\n\n` +
-    `📦 *ITENS:*\n${itensTexto}\n\n` +
-    `🔐 *Acessar Admin:*\n` +
-    `👉 https://stickershop.onrender.com/admin\n` +
-    `📧 admin@stickershop.com.br\n` +
-    `🔑 admin123\n\n` +
-    `_Entre no painel admin, veja o pedido e organize a produção!_`
-  );
+  if (isDinheiro) {
+    textoWhats =
+      `*NOVO PEDIDO - STICKERSHOP*` +
+      `%0A%0A*Protocolo:* #${protocolo}` +
+      `%0A*Total:* ${totalStr}` +
+      `%0A*Pagamento:* Dinheiro` +
+      `%0A%0A*ITENS:*%0A${itensTexto}` +
+      `%0A%0A*ACESSAR ADMIN:*` +
+      `%0A👉 https://stickershop.onrender.com/admin` +
+      `%0A📧 admin@stickershop.com.br` +
+      `%0A🔑 admin123` +
+      `%0A%0A_Entre no painel admin, veja o pedido e organize a producao!_`;
+  } else {
+    textoWhats =
+      `*PEDIDO PAGO - STICKERSHOP*` +
+      `%0A%0A*Protocolo:* #${protocolo}` +
+      `%0A*Valor:* ${totalStr}` +
+      `%0A*Pagamento:* Pix (Nubank)` +
+      `%0A*Chave Pix:* ${PIX_CHAVE}` +
+      `%0A%0A*ITENS:*%0A${itensTexto}` +
+      `%0A%0A_Comprovante de pagamento enviado pelo cliente._`;
+  }
 
-  const mensagemPix = encodeURIComponent(
-    `🛒 *PEDIDO PAGO — STICKERSHOP*\n\n` +
-    `📋 *Protocolo:* #${protocolo}\n` +
-    `💰 *Valor:* ${formatCurrency(order.total)}\n` +
-    `💵 *Pagamento:* Pix (Nubank)\n` +
-    `📱 *Chave:* ${PIX_CHAVE}\n\n` +
-    `📦 *ITENS:*\n${itensTexto}\n\n` +
-    `_Comprovante de pagamento enviado pelo cliente._`
-  );
-
-  const mensagem = isDinheiro ? mensagemDinheiro : mensagemPix;
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMERO}?text=${mensagem}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMERO}?text=${textoWhats}`;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl text-center">
@@ -89,7 +86,7 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
           : "Seu pedido foi recebido e está sendo processado."}
       </p>
 
-      {/* Pix instructions */}
+      {/* Pix info */}
       {isPix && (
         <Card className="text-left mb-6 border-purple-300 bg-purple-50">
           <CardContent className="p-6 text-center space-y-4">
@@ -103,17 +100,20 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
               </p>
               <p className="font-mono font-bold text-2xl text-purple-900 mt-2">{PIX_CHAVE}</p>
               <p className="text-sm text-purple-700 mt-2">
-                Valor: {formatCurrency(order.total)}
+                Valor: {totalStr}
               </p>
             </div>
             <p className="text-xs text-purple-600">
               Faça a transferência Pix e envie o comprovante pelo WhatsApp.
             </p>
-            <Button variant="outline" size="sm" asChild className="border-purple-300">
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                <Send className="mr-2 h-4 w-4" /> Enviar Comprovante
-              </a>
-            </Button>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-purple-300 bg-white px-4 py-2 text-sm font-medium text-purple-800 hover:bg-purple-100 transition-colors"
+            >
+              <Send className="h-4 w-4" /> Enviar Comprovante
+            </a>
           </CardContent>
         </Card>
       )}
@@ -130,12 +130,15 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
                 pelo WhatsApp. O pagamento será combinado com o vendedor.
               </p>
             </div>
-            <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white" asChild>
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                <Send className="mr-2 h-5 w-5" />
-                Enviar Pedido pelo WhatsApp
-              </a>
-            </Button>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 w-full rounded-md bg-green-600 px-6 py-3 text-base font-medium text-white hover:bg-green-700 transition-colors"
+            >
+              <Send className="h-5 w-5" />
+              Enviar Pedido pelo WhatsApp
+            </a>
           </CardContent>
         </Card>
       )}
@@ -205,20 +208,14 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
       </Card>
 
       <div className="flex gap-3 justify-center flex-wrap">
-        {isDinheiro && (
-          <Button variant="outline" className="bg-green-50 border-green-300" asChild>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-              <Send className="mr-2 h-4 w-4" /> WhatsApp
-            </a>
-          </Button>
-        )}
-        {isPix && (
-          <Button variant="outline" className="bg-purple-50 border-purple-300" asChild>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-              <Send className="mr-2 h-4 w-4" /> Enviar Comprovante
-            </a>
-          </Button>
-        )}
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
+        >
+          <Send className="h-4 w-4" /> WhatsApp
+        </a>
         <Button variant="outline" asChild>
           <Link href="/meus-pedidos">
             <Package className="mr-2 h-4 w-4" /> Meus Pedidos
@@ -226,7 +223,7 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
         </Button>
         <Button asChild>
           <Link href="/">
-            Continuar Comprando <ArrowRight className="ml-2 h-4 w-4" />
+            Continuar Comprindo <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </div>
