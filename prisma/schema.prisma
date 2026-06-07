@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ======================== USUÁRIOS ========================
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  phone         String?
+  role          String    @default("cliente") // "cliente" | "admin"
+
+  // Endereço
+  addressStreet     String?
+  addressNumber     String?
+  addressComplement String?
+  addressDistrict   String?
+  addressCity       String?
+  addressState      String?
+  addressZip        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders          Order[]
+  customUploads   CustomUpload[]
+  accounts        Account[]
+  sessions        Session[]
+}
+
+// ======================== NEXT-AUTH ========================
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ======================== CATEGORIAS ========================
+model Category {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  imageUrl    String?
+  active      Boolean @default(true)
+  order       Int     @default(0)
+  createdAt   DateTime @default(now())
+
+  products Product[]
+}
+
+// ======================== PRODUTOS ========================
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  basePrice   Float
+  categoryId  String
+  imageUrl    String?
+  type        String  @default("pronta") // "pronta" | "personalizada"
+  active      Boolean @default(true)
+  featured    Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category   Category           @relation(fields: [categoryId], references: [id])
+  variants   ProductVariant[]
+  orderItems OrderItem[]
+}
+
+// ======================== VARIANTES DE PRODUTO ========================
+model ProductVariant {
+  id          String  @id @default(cuid())
+  productId   String
+  size        String  // "5x5" | "7x7" | "10x10"
+  finish      String  // "brilhante" | "fosco" | "holografico"
+  priceExtra  Float   @default(0)
+  stock       Int     @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size, finish])
+}
+
+// ======================== UPLOADS PERSONALIZADOS ========================
+model CustomUpload {
+  id              String   @id @default(cuid())
+  userId          String
+  originalUrl     String
+  previewUrl      String
+  highResUrl      String
+  size            String   // "5x5" | "7x7" | "10x10"
+  finish          String   // "brilhante" | "fosco" | "holografico"
+  quantity        Int      @default(1)
+  status          String   @default("pendente") // "pendente" | "aprovado" | "em_producao" | "concluido"
+  createdAt       DateTime @default(now())
+
+  user       User         @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+}
+
+// ======================== PEDIDOS ========================
+model Order {
+  id              String   @id @default(cuid())
+  userId          String
+  status          String   @default("aguardando_pagamento")
+  // "aguardando_pagamento" | "pago" | "em_producao" | "enviado" | "entregue" | "cancelado"
+  subtotal        Float
+  discountTotal   Float    @default(0)
+  shipping        Float    @default(0)
+  total           Float
+  couponId        String?
+  promotionRuleId String?
+  observation     String?
+
+  // Endereço de entrega (snapshot)
+  addressStreet     String?
+  addressNumber     String?
+  addressComplement String?
+  addressDistrict   String?
+  addressCity       String?
+  addressState      String?
+  addressZip        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id])
+  coupon        Coupon?        @relation(fields: [couponId], references: [id])
+  promotionRule PromotionRule? @relation(fields: [promotionRuleId], references: [id])
+  items         OrderItem[]
+  timeline      OrderTimeline[]
+}
+
+// ======================== ITENS DO PEDIDO ========================
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  productId     String?
+  variantId     String?
+  uploadId      String?
+  itemType      String  // "produto_pronto" | "personalizado"
+  quantity      Int
+  unitPrice     Float
+  subtotal      Float
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?       @relation(fields: [productId], references: [id])
+  upload  CustomUpload?  @relation(fields: [uploadId], references: [id])
+}
+
+// ======================== TIMELINE DO PEDIDO ========================
+model OrderTimeline {
+  id             String   @id @default(cuid())
+  orderId        String
+  previousStatus String?
+  newStatus      String
+  message        String?
+  createdBy      String   // "sistema" | "admin"
+  createdAt      DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// ======================== CUPONS ========================
+model Coupon {
+  id           String    @id @default(cuid())
+  code         String    @unique
+  type         String    // "percentual" | "valor_fixo"
+  value        Float
+  minOrderValue Float   @default(0)
+  startDate    DateTime
+  endDate      DateTime
+  maxUses      Int?
+  currentUses  Int       @default(0)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  orders Order[]
+}
+
+// ======================== REGRAS DE PROMOÇÃO ========================
+model PromotionRule {
+  id              String    @id @default(cuid())
+  name            String
+  type            String
+  // "compre_x_pague_y" | "desconto_por_qtde" | "desconto_percentual"
+  buyQty          Int?
+  payQty          Int?
+  discountPercent Float?
+  applyTo         String    // "todos" | "categoria" | "produto"
+  categoryId      String?
+  productId       String?
+  startDate       DateTime
+  endDate         DateTime
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  orders Order[]
+}
