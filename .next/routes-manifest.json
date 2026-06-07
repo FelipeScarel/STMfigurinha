@@ -1,0 +1,188 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/admin/pedidos/[id]",
+      "regex": "^/admin/pedidos/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/pedidos/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/admin/pedidos/[id]/download",
+      "regex": "^/api/admin/pedidos/([^/]+?)/download(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/pedidos/(?<nxtPid>[^/]+?)/download(?:/)?$"
+    },
+    {
+      "page": "/api/admin/pedidos/[id]/status",
+      "regex": "^/api/admin/pedidos/([^/]+?)/status(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/pedidos/(?<nxtPid>[^/]+?)/status(?:/)?$"
+    },
+    {
+      "page": "/api/auth/[...nextauth]",
+      "regex": "^/api/auth/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPnextauth": "nxtPnextauth"
+      },
+      "namedRegex": "^/api/auth/(?<nxtPnextauth>.+?)(?:/)?$"
+    },
+    {
+      "page": "/categorias/[slug]",
+      "regex": "^/categorias/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/categorias/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/confirmacao/[id]",
+      "regex": "^/confirmacao/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/confirmacao/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/produtos/[slug]",
+      "regex": "^/produtos/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/produtos/(?<nxtPslug>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/admin/categorias",
+      "regex": "^/admin/categorias(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/categorias(?:/)?$"
+    },
+    {
+      "page": "/admin/cupons",
+      "regex": "^/admin/cupons(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/cupons(?:/)?$"
+    },
+    {
+      "page": "/admin/pedidos",
+      "regex": "^/admin/pedidos(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/pedidos(?:/)?$"
+    },
+    {
+      "page": "/admin/produtos",
+      "regex": "^/admin/produtos(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/produtos(?:/)?$"
+    },
+    {
+      "page": "/admin/promocoes",
+      "regex": "^/admin/promocoes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/promocoes(?:/)?$"
+    },
+    {
+      "page": "/buscar",
+      "regex": "^/buscar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/buscar(?:/)?$"
+    },
+    {
+      "page": "/cadastro",
+      "regex": "^/cadastro(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/cadastro(?:/)?$"
+    },
+    {
+      "page": "/carrinho",
+      "regex": "^/carrinho(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/carrinho(?:/)?$"
+    },
+    {
+      "page": "/checkout",
+      "regex": "^/checkout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/checkout(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/meus-pedidos",
+      "regex": "^/meus\\-pedidos(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/meus\\-pedidos(?:/)?$"
+    },
+    {
+      "page": "/personalizar",
+      "regex": "^/personalizar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/personalizar(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
