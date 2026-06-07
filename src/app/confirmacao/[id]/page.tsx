@@ -70,7 +70,6 @@ export default async function ConfirmacaoPage({ params, searchParams }: Props) {
       `_Comprovante de pagamento enviado pelo cliente._`
     );
   }
-  }
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMERO}?text=${textoWhats}`;
 
