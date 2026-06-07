@@ -104,7 +104,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "c:\\Users\\guilh",
+    "outputFileTracingRoot": "C:\\Users\\guilh",
     "experimental": {
       "useSkewCookie": false,
       "cacheLife": {
@@ -297,10 +297,10 @@
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.mjs",
     "turbopack": {
-      "root": "c:\\Users\\guilh"
+      "root": "C:\\Users\\guilh"
     }
   },
-  "appDir": "c:\\Users\\guilh\\OneDrive\\Documentos\\autocad\\Área de Trabalho\\Figurinha",
+  "appDir": "C:\\Users\\guilh\\OneDrive\\Documentos\\autocad\\Área de Trabalho\\Figurinha",
   "relativeAppDir": "OneDrive\\Documentos\\autocad\\Área de Trabalho\\Figurinha",
   "files": [
     ".next\\routes-manifest.json",

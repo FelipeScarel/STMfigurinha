@@ -5,10 +5,7 @@ import { prisma } from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Faça login" }, { status: 401 });
-    }
-    const userId = (session.user as any).id;
+    const userId = (session?.user as any)?.id || null;
 
     const body = await req.json();
     const { items } = body || {};
@@ -17,12 +14,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 });
     }
 
-    // Calcula valores
     let subtotal = 0;
     const orderItems = items.map((i: any) => {
       const qty = Number(i.quantity) || 1;
       const price = Number(i.unitPrice) || 0;
-      const sub = qty * price;
+      const sub = Math.round(qty * price * 100) / 100;
       subtotal += sub;
       return {
         productId: i.productId || null,
@@ -39,7 +35,7 @@ export async function POST(req: Request) {
 
     const order = await prisma.order.create({
       data: {
-        userId,
+        userId: userId || null,
         status: "aguardando_pagamento",
         subtotal,
         discountTotal: 0,
@@ -58,7 +54,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ id: order.id, total: order.total }, { status: 201 });
   } catch (error: any) {
-    console.error("Checkout:", error?.message || error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    console.error("[CHECKOUT]", error?.message || error);
+    return NextResponse.json(
+      { error: "Erro interno: " + (error?.message || "desconhecido") },
+      { status: 500 }
+    );
   }
 }

@@ -18,7 +18,7 @@ export function middleware(req: NextRequest) {
   }
 
   // Protege checkout e meus-pedidos
-  if (pathname.startsWith("/checkout") || pathname.startsWith("/meus-pedidos")) {
+  if (pathname.startsWith("/meus-pedidos")) {
     if (!sessionCookie) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
