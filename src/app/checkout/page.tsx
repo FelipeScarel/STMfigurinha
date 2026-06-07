@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, CreditCard, QrCode, Barcode, Check } from "lucide-react";
+import { ArrowLeft, CreditCard, QrCode, Barcode, Check, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/stores/cart";
@@ -19,7 +19,7 @@ export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCartStore();
   const [step, setStep] = useState<Step>("review");
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card" | "boleto">("pix");
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card" | "boleto" | "dinheiro">("pix");
   const [discounts, setDiscounts] = useState<any>(null);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function CheckoutPage() {
 
       const order = await res.json();
       clearCart();
-      router.push(`/confirmacao/${order.id}`);
+      router.push(`/confirmacao/${order.id}?pagamento=${paymentMethod}`);
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar pedido.");
     } finally {
@@ -128,6 +128,7 @@ export default function CheckoutPage() {
           <div className="space-y-2">
             {[
               { id: "pix" as const, label: "Pix", icon: QrCode, desc: "Pagamento instantâneo" },
+              { id: "dinheiro" as const, label: "Dinheiro", icon: Banknote, desc: "Pagamento na entrega ou combinado via WhatsApp" },
               { id: "card" as const, label: "Cartão de Crédito", icon: CreditCard, desc: "Até 3x sem juros" },
               { id: "boleto" as const, label: "Boleto", icon: Barcode, desc: "Vencimento em 3 dias" },
             ].map((method) => (
@@ -146,6 +147,13 @@ export default function CheckoutPage() {
               </button>
             ))}
           </div>
+
+          {paymentMethod === "dinheiro" && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+              Ao finalizar, você será redirecionado para enviar os detalhes do pedido diretamente
+              pelo WhatsApp para o dono da loja. O pagamento é combinado diretamente com ele.
+            </div>
+          )}
 
           <div className="pt-4 space-y-2">
             <div className="flex justify-between text-lg font-bold">
