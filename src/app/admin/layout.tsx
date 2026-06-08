@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import {
   LayoutDashboard, ShoppingBag, Package, Tags, Percent, Ticket, Star, ChevronLeft,
 } from "lucide-react";
-import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 const sidebarLinks = [
@@ -15,10 +18,32 @@ const sidebarLinks = [
   { href: "/admin/promocoes", label: "Promoções", icon: Percent },
 ];
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
-  if ((session.user as { role: string }).role !== "admin") redirect("/");
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    const role = (session.user as any)?.role;
+    if (role !== "admin") {
+      router.push("/");
+    }
+  }, [session, status, router]);
+
+  if (status === "loading" || !session) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const user = session.user as any;
+  if (user?.role !== "admin") return null;
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">

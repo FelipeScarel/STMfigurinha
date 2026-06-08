@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 
+export async function GET() {
+  const rules = await prisma.promotionRule.findMany({ orderBy: { createdAt: "desc" } });
+  return NextResponse.json(rules);
+}
+
 export async function POST(req: Request) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;

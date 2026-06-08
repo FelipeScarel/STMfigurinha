@@ -1,35 +1,36 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShoppingBag, Package, Truck, DollarSign, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { prisma } from "@/lib/db";
 import { formatCurrency, orderStatusLabel, orderStatusColor } from "@/lib/utils";
 
-export default async function AdminDashboard() {
-  const [totalOrders, pendingOrders, inProduction, shipped, revenue] = await Promise.all([
-    prisma.order.count(),
-    prisma.order.count({ where: { status: "aguardando_pagamento" } }),
-    prisma.order.count({ where: { status: "em_producao" } }),
-    prisma.order.count({ where: { status: "enviado" } }),
-    prisma.order.aggregate({
-      _sum: { total: true },
-      where: { status: { not: "cancelado" } },
-    }),
-  ]);
+interface OrderRow {
+  id: string;
+  total: number;
+  status: string;
+  createdAt: string;
+  userName: string;
+}
 
-  const recentOrders = await prisma.order.findMany({
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
+export default function AdminDashboard() {
+  const [stats, setStats] = useState({ total: 0, pending: 0, production: 0, shipped: 0, revenue: 0 });
+  const [orders, setOrders] = useState<OrderRow[]>([]);
 
-  const stats = [
-    { label: "Total de Pedidos", value: totalOrders, icon: ShoppingBag, color: "text-blue-600 bg-blue-100" },
-    { label: "Aguardando Pagamento", value: pendingOrders, icon: DollarSign, color: "text-yellow-600 bg-yellow-100" },
-    { label: "Em Produção", value: inProduction, icon: Package, color: "text-purple-600 bg-purple-100" },
-    { label: "Enviados", value: shipped, icon: Truck, color: "text-orange-600 bg-orange-100" },
-  ];
+  useEffect(() => {
+    fetch("/api/admin/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {});
+
+    fetch("/api/admin/orders/recent")
+      .then((r) => r.json())
+      .then(setOrders)
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -38,26 +39,61 @@ export default async function AdminDashboard() {
         <p className="text-muted-foreground">Visão geral do seu negócio</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${stat.color}`}>
-                  <stat.icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl text-blue-600 bg-blue-100">
+                <ShoppingBag className="h-5 w-5" />
               </div>
-            </CardContent>
-          </Card>
-        ))}
+              <div>
+                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-xs text-muted-foreground">Total de Pedidos</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl text-yellow-600 bg-yellow-100">
+                <DollarSign className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.pending}</p>
+                <p className="text-xs text-muted-foreground">Aguardando</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl text-purple-600 bg-purple-100">
+                <Package className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.production}</p>
+                <p className="text-xs text-muted-foreground">Em Produção</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl text-orange-600 bg-orange-100">
+                <Truck className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.shipped}</p>
+                <p className="text-xs text-muted-foreground">Enviados</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Revenue */}
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -65,16 +101,13 @@ export default async function AdminDashboard() {
               <DollarSign className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">
-                {formatCurrency(revenue._sum.total || 0)}
-              </p>
-              <p className="text-xs text-muted-foreground">Faturamento total (excluindo cancelados)</p>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(stats.revenue)}</p>
+              <p className="text-xs text-muted-foreground">Faturamento total</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Recent Orders */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Pedidos Recentes</CardTitle>
@@ -88,29 +121,27 @@ export default async function AdminDashboard() {
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
                   <th className="pb-2 font-medium">Pedido</th>
-                  <th className="pb-2 font-medium">Cliente</th>
                   <th className="pb-2 font-medium">Total</th>
                   <th className="pb-2 font-medium">Status</th>
                   <th className="pb-2 font-medium">Data</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="border-b last:border-0">
+                {orders.map((o) => (
+                  <tr key={o.id} className="border-b last:border-0">
+                    <td className="py-3 font-mono text-xs">#{o.id.slice(-8).toUpperCase()}</td>
+                    <td className="py-3 font-medium">{formatCurrency(o.total)}</td>
                     <td className="py-3">
-                      <Link href={`/admin/pedidos/${order.id}`} className="text-primary font-mono text-xs hover:underline">
-                        #{order.id.slice(-8).toUpperCase()}
+                      <Badge className={orderStatusColor(o.status)}>{orderStatusLabel(o.status)}</Badge>
+                    </td>
+                    <td className="py-3 text-xs text-muted-foreground">
+                      {new Date(o.createdAt).toLocaleDateString("pt-BR")}
+                    </td>
+                    <td className="py-3">
+                      <Link href={`/admin/pedidos/${o.id}`} className="text-primary text-xs hover:underline">
+                        Ver →
                       </Link>
-                    </td>
-                    <td className="py-3">{order.user?.name || "Visitante"}</td>
-                    <td className="py-3 font-medium">{formatCurrency(order.total)}</td>
-                    <td className="py-3">
-                      <Badge className={orderStatusColor(order.status)}>
-                        {orderStatusLabel(order.status)}
-                      </Badge>
-                    </td>
-                    <td className="py-3 text-muted-foreground text-xs">
-                      {new Date(order.createdAt).toLocaleDateString("pt-BR")}
                     </td>
                   </tr>
                 ))}

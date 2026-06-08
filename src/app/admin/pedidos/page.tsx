@@ -1,27 +1,37 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { prisma } from "@/lib/db";
 import { formatCurrency, orderStatusLabel, orderStatusColor } from "@/lib/utils";
 
-export default async function AdminPedidosPage() {
-  const orders = await prisma.order.findMany({
-    include: {
-      user: { select: { name: true, email: true } },
-      items: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+interface OrderRow {
+  id: string;
+  total: number;
+  status: string;
+  createdAt: string;
+  userName: string;
+  userEmail: string;
+  itemCount: number;
+  hasCustom: boolean;
+}
+
+export default function AdminPedidosPage() {
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+
+  useEffect(() => {
+    fetch("/api/admin/orders")
+      .then((r) => r.json())
+      .then(setOrders)
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Pedidos</h1>
-          <p className="text-muted-foreground">{orders.length} pedidos no total</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">Pedidos</h1>
+        <p className="text-muted-foreground">{orders.length} pedidos</p>
       </div>
 
       <Card>
@@ -31,43 +41,26 @@ export default async function AdminPedidosPage() {
               <thead>
                 <tr className="border-b text-left text-muted-foreground bg-muted/30">
                   <th className="p-4 font-medium">Pedido</th>
-                  <th className="p-4 font-medium">Cliente</th>
-                  <th className="p-4 font-medium">Itens</th>
                   <th className="p-4 font-medium">Total</th>
                   <th className="p-4 font-medium">Status</th>
                   <th className="p-4 font-medium">Data</th>
-                  <th className="p-4 font-medium"></th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id} className="border-b last:border-0 hover:bg-muted/20">
+                {orders.map((o) => (
+                  <tr key={o.id} className="border-b last:border-0 hover:bg-muted/20">
                     <td className="p-4">
-                      <span className="font-mono text-xs">#{order.id.slice(-8).toUpperCase()}</span>
+                      <span className="font-mono text-xs">#{o.id.slice(-8).toUpperCase()}</span>
+                      {o.hasCustom && <Badge variant="secondary" className="ml-2 text-[10px]">Personalizado</Badge>}
                     </td>
+                    <td className="p-4 font-semibold">{formatCurrency(o.total)}</td>
                     <td className="p-4">
-                      <p className="font-medium">{order.user?.name || "Visitante"}</p>
-                      <p className="text-xs text-muted-foreground">{order.user?.email || "—"}</p>
+                      <Badge className={orderStatusColor(o.status)}>{orderStatusLabel(o.status)}</Badge>
                     </td>
+                    <td className="p-4 text-xs text-muted-foreground">{new Date(o.createdAt).toLocaleDateString("pt-BR")}</td>
                     <td className="p-4">
-                      {order.items.length} {order.items.length === 1 ? "item" : "itens"}
-                      {order.items.some(i => i.itemType === "personalizado") && (
-                        <Badge variant="secondary" className="ml-2 text-[10px]">Personalizado</Badge>
-                      )}
-                    </td>
-                    <td className="p-4 font-semibold">{formatCurrency(order.total)}</td>
-                    <td className="p-4">
-                      <Badge className={orderStatusColor(order.status)}>
-                        {orderStatusLabel(order.status)}
-                      </Badge>
-                    </td>
-                    <td className="p-4 text-xs text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleDateString("pt-BR")}
-                    </td>
-                    <td className="p-4">
-                      <Link href={`/admin/pedidos/${order.id}`} className="text-primary text-xs hover:underline">
-                        Ver detalhes →
-                      </Link>
+                      <Link href={`/admin/pedidos/${o.id}`} className="text-primary text-xs hover:underline">Ver detalhes →</Link>
                     </td>
                   </tr>
                 ))}
