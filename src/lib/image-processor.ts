@@ -1,106 +1,42 @@
-import sharp from "sharp";
 import path from "path";
 import fs from "fs/promises";
+import { existsSync } from "fs";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "products");
 
 async function ensureDir(dir: string) {
-  try {
+  if (!existsSync(dir)) {
     await fs.mkdir(dir, { recursive: true });
-  } catch {
-    // already exists
   }
 }
 
 export async function processUpload(
   inputBuffer: Buffer,
-  cropData?: { x: number; y: number; width: number; height: number }
+  _cropData?: { x: number; y: number; width: number; height: number }
 ) {
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   await ensureDir(UPLOAD_DIR);
 
-  const metadata = await sharp(inputBuffer).metadata();
-  const imgW = metadata.width || 800;
-  const imgH = metadata.height || 800;
+  const ext = detectImageFormat(inputBuffer);
+  const filename = `${id}.${ext}`;
+  const filePath = path.join(UPLOAD_DIR, filename);
 
-  let image = sharp(inputBuffer);
+  await fs.writeFile(filePath, inputBuffer);
 
-  // Aplica crop se especificado (cropData vem em PIXELS da imagem original)
-  if (cropData && cropData.width > 0 && cropData.height > 0) {
-    // Valida e limita as coordenadas dentro dos limites da imagem
-    const left = Math.max(0, Math.min(Math.round(cropData.x), imgW - 1));
-    const top = Math.max(0, Math.min(Math.round(cropData.y), imgH - 1));
-    const cropWidth = Math.max(1, Math.min(Math.round(cropData.width), imgW - left));
-    const cropHeight = Math.max(1, Math.min(Math.round(cropData.height), imgH - top));
+  return {
+    id,
+    previewUrl: `/uploads/products/${filename}`,
+    originalUrl: `/uploads/products/${filename}`,
+    highResUrl: `/uploads/products/${filename}`,
+  };
+}
 
-    image = image.extract({
-      left,
-      top,
-      width: cropWidth,
-      height: cropHeight,
-    });
-  }
-
-  try {
-    // Preview WebP (300x300)
-    const previewPath = path.join(UPLOAD_DIR, `${id}_preview.webp`);
-    await image
-      .clone()
-      .resize(300, 300, { fit: "cover" })
-      .webp({ quality: 85 })
-      .toFile(previewPath);
-
-    // Alta resolução PNG (300 DPI, ~1200px para 10cm)
-    const highResPath = path.join(UPLOAD_DIR, `${id}_hires.png`);
-    await image
-      .clone()
-      .resize(1200, 1200, { fit: "inside", withoutEnlargement: true })
-      .png({ quality: 100 })
-      .toFile(highResPath);
-
-    // Original otimizado WebP
-    const originalPath = path.join(UPLOAD_DIR, `${id}_original.webp`);
-    await image
-      .clone()
-      .resize(800, 800, { fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 90 })
-      .toFile(originalPath);
-
-    return {
-      id,
-      previewUrl: `/uploads/${id}_preview.webp`,
-      highResUrl: `/uploads/${id}_hires.png`,
-      originalUrl: `/uploads/${id}_original.webp`,
-    };
-  } catch (err) {
-    // Se o crop falhou, tenta sem crop
-    if (cropData) {
-      console.warn("Crop failed, processing without crop:", err);
-      image = sharp(inputBuffer);
-      const previewPath = path.join(UPLOAD_DIR, `${id}_preview.webp`);
-      await image
-        .resize(300, 300, { fit: "cover" })
-        .webp({ quality: 85 })
-        .toFile(previewPath);
-      const highResPath = path.join(UPLOAD_DIR, `${id}_hires.png`);
-      await image
-        .resize(1200, 1200, { fit: "inside", withoutEnlargement: true })
-        .png({ quality: 100 })
-        .toFile(highResPath);
-      const originalPath = path.join(UPLOAD_DIR, `${id}_original.webp`);
-      await image
-        .resize(800, 800, { fit: "inside", withoutEnlargement: true })
-        .webp({ quality: 90 })
-        .toFile(originalPath);
-      return {
-        id,
-        previewUrl: `/uploads/${id}_preview.webp`,
-        highResUrl: `/uploads/${id}_hires.png`,
-        originalUrl: `/uploads/${id}_original.webp`,
-      };
-    }
-    throw err;
-  }
+function detectImageFormat(buffer: Buffer): string {
+  // Detecta pelo magic number
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) return "jpg";
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) return "png";
+  if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) return "webp"; // RIFF
+  return "png"; // fallback
 }
 
 export async function deleteUploadFiles(urls: {

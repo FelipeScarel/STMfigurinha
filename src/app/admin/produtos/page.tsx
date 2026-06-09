@@ -312,12 +312,12 @@ export default function AdminProdutosPage() {
                 <div className="flex-1">
                   <Input
                     type="file"
-                    accept="image/png,image/jpeg,image/webp"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,.png,.jpg,.jpeg,.webp,.gif"
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      if (file.size > 5 * 1024 * 1024) {
-                        toast.error("Imagem muito grande. Máximo: 5MB.");
+                      if (file.size > 10 * 1024 * 1024) {
+                        toast.error("Imagem muito grande. Máximo: 10MB.");
                         return;
                       }
                       const uploading = toast.loading("Enviando imagem...");
@@ -325,12 +325,12 @@ export default function AdminProdutosPage() {
                         const uploadForm = new FormData();
                         uploadForm.append("file", file);
                         const res = await fetch("/api/upload", { method: "POST", body: uploadForm });
-                        if (!res.ok) throw new Error("Upload failed");
                         const data = await res.json();
-                        setForm({ ...form, imageUrl: data.previewUrl });
+                        if (!res.ok) throw new Error(data.error || "Upload failed");
+                        setForm((prev) => ({ ...prev, imageUrl: data.previewUrl }));
                         toast.success("Imagem enviada!", { id: uploading });
-                      } catch {
-                        toast.error("Erro ao enviar imagem.", { id: uploading });
+                      } catch (err: any) {
+                        toast.error(err.message || "Erro ao enviar imagem.", { id: uploading });
                       }
                     }}
                     className="cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"

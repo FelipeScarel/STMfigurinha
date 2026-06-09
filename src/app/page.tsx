@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Star, Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { ProductCard } from "@/components/vitrine/ProductCard";
 import { CategoryCard } from "@/components/vitrine/CategoryCard";
+import { FeaturedCarousel } from "@/components/vitrine/FeaturedCarousel";
 
 export default async function HomePage() {
   const categories = await prisma.category.findMany({
@@ -20,7 +21,7 @@ export default async function HomePage() {
       category: { select: { id: true, name: true, slug: true } },
       variants: { select: { size: true, finish: true, priceExtra: true, stock: true } },
     },
-    take: 8,
+    take: 10,
   });
 
   const newProducts = await prisma.product.findMany({
@@ -37,59 +38,20 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero Banner */}
-      <section className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-blue-900/20 overflow-hidden">
-        <div className="container mx-auto px-4 py-16 md:py-24">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                Suas figurinhas,
-                <br />
-                <span className="text-primary">sua identidade</span>
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-md">
-                Crie figurinhas personalizadas com suas fotos ou escolha entre centenas de designs exclusivos. Acabamentos premium e entrega rápida.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Button size="lg" asChild>
-                  <Link href="/personalizar">
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Criar Figurinha Personalizada
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="/categorias/anime">
-                    Ver Coleções
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-              <div className="flex gap-6 text-sm text-muted-foreground">
-                <span>✓ Produção em 48h</span>
-                <span>✓ Acabamento Premium</span>
-                <span>✓ Qualidade Garantida</span>
-              </div>
-            </div>
-            <div className="hidden md:flex justify-center">
-              <div className="relative w-80 h-80">
-                <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl" />
-                <div className="relative grid grid-cols-2 gap-4 rotate-6">
-                  {["🦊", "⭐", "🎮", "🎸"].map((emoji, i) => (
-                    <div
-                      key={i}
-                      className="w-36 h-36 bg-white rounded-2xl shadow-lg flex items-center justify-center text-5xl border-4 border-white hover:scale-105 transition-transform"
-                    >
-                      {emoji}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ====== HERO: Featured Carousel ====== */}
+      <FeaturedCarousel
+        products={featuredProducts.map((p) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          basePrice: p.basePrice,
+          showPrice: p.showPrice !== false,
+          imageUrl: p.imageUrl,
+          categoryName: p.category?.name || "Figurinhas",
+        }))}
+      />
 
-      {/* Categories */}
+      {/* ====== Categories ====== */}
       <section className="container mx-auto px-4 py-16">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -104,30 +66,30 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
-      {featuredProducts.length > 0 && (
-        <section className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold">Destaques</h2>
-              <p className="text-muted-foreground">As mais queridas da galera</p>
-            </div>
-            <Button variant="ghost" asChild>
-              <Link href="/buscar?q=">Ver Todas <ArrowRight className="ml-1 h-4 w-4" /></Link>
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* ====== New Products ====== */}
+      <section className="container mx-auto px-4 py-8 pb-16">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold">Novidades</h2>
+          <p className="text-muted-foreground">Acabaram de chegar</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
+          {newProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
 
-      {/* CTA Personalização */}
+      {/* ====== CTA Personalização ====== */}
       <section className="container mx-auto px-4 py-16">
-        <div className="relative bg-gradient-to-r from-primary to-blue-600 rounded-2xl p-8 md:p-12 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 md:p-12 overflow-hidden">
           <div className="absolute inset-0 bg-black/10" />
+          {/* Star dots */}
+          <div className="absolute inset-0 pointer-events-none opacity-20">
+            <div className="absolute top-[10%] left-[5%] w-[2px] h-[2px] bg-white rounded-full" />
+            <div className="absolute top-[30%] left-[20%] w-[1px] h-[1px] bg-white rounded-full" />
+            <div className="absolute top-[60%] left-[70%] w-[2px] h-[2px] bg-white rounded-full" />
+            <div className="absolute top-[20%] left-[80%] w-[1px] h-[1px] bg-white rounded-full" />
+          </div>
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-white space-y-3">
               <h2 className="text-2xl md:text-3xl font-bold">
@@ -144,19 +106,6 @@ export default async function HomePage() {
               </Link>
             </Button>
           </div>
-        </div>
-      </section>
-
-      {/* New Products */}
-      <section className="container mx-auto px-4 py-8 pb-16">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold">Novidades</h2>
-          <p className="text-muted-foreground">Acabaram de chegar</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-          {newProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
         </div>
       </section>
     </div>
