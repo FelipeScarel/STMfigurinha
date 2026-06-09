@@ -33,24 +33,32 @@ export async function POST(req: Request) {
 
     const total = Math.round(subtotal * 100) / 100;
 
-    const order = await prisma.order.create({
-      data: {
-        userId: userId || null,
-        status: "aguardando_pagamento",
-        subtotal,
-        discountTotal: 0,
-        shipping: 0,
-        total,
-        items: { create: orderItems },
-        timeline: {
-          create: {
-            newStatus: "aguardando_pagamento",
-            message: "Pedido criado. Aguardando contato via WhatsApp.",
-            createdBy: "sistema",
-          },
+    // Só inclui userId se for um valor válido (evita FK constraint no PostgreSQL)
+    const orderData: any = {
+      status: "aguardando_pagamento",
+      subtotal,
+      discountTotal: 0,
+      shipping: 0,
+      total,
+      items: { create: orderItems },
+      timeline: {
+        create: {
+          newStatus: "aguardando_pagamento",
+          message: "Pedido criado. Aguardando contato via WhatsApp.",
+          createdBy: "sistema",
         },
       },
-    });
+    };
+
+    // Verifica se o usuário realmente existe antes de linkar
+    if (userId) {
+      const userExists = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+      if (userExists) {
+        orderData.userId = userId;
+      }
+    }
+
+    const order = await prisma.order.create({ data: orderData });
 
     return NextResponse.json({ id: order.id, total: order.total }, { status: 201 });
   } catch (error: any) {
