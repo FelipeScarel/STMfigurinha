@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/stores/cart";
 import { formatCurrency } from "@/lib/utils";
-import Image from "next/image";
 
 export function CartDrawer({ onClose }: { onClose: () => void }) {
   const { items, removeItem, updateQuantity, subtotal } = useCartStore();
@@ -33,12 +32,13 @@ export function CartDrawer({ onClose }: { onClose: () => void }) {
         {items.map((item) => (
           <div key={item.cartItemId} className="flex gap-3 py-3 border-b last:border-0">
             <div className="relative w-16 h-16 rounded-md overflow-hidden bg-muted shrink-0">
-              <Image
+              <img
                 src={item.imageUrl}
                 alt={item.name}
-                fill
-                className="object-cover"
-                sizes="64px"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
               />
             </div>
             <div className="flex-1 min-w-0">

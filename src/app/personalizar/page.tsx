@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Image from "next/image";
 import { Upload, Crop, Scissors, Sparkles, ShoppingCart, Check } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import Cropper, { type Area } from "react-easy-crop";
@@ -219,7 +218,7 @@ export default function PersonalizarPage() {
               selectedFinish === "holografico" ? "ring-4 ring-cyan-400" :
               selectedFinish === "brilhante" ? "ring-4 ring-blue-400" : "ring-4 ring-gray-600"
             }`}>
-              <Image src={croppedImageUrl} alt="Preview" fill className="object-cover" sizes="224px" />
+              <img src={croppedImageUrl} alt="Preview" className="w-full h-full object-cover" />
               {selectedFinish === "holografico" && (
                 <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-transparent to-blue-500/20" />
               )}

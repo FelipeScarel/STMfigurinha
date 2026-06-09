@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,12 +28,22 @@ export function ProductCard({ product }: { product: ProductWithRelations }) {
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
           {product.imageUrl ? (
-            <Image
+            <img
               src={product.imageUrl}
               alt={product.name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+              onError={(e) => {
+                const el = e.target as HTMLImageElement;
+                el.style.display = "none";
+                const parent = el.parentElement;
+                if (parent && !parent.querySelector(".img-fallback")) {
+                  const fallback = document.createElement("div");
+                  fallback.className = "img-fallback w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-blue-900/30";
+                  fallback.textContent = "🎴";
+                  parent.appendChild(fallback);
+                }
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-blue-900/30">

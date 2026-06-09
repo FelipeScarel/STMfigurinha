@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, Tag, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,7 +80,7 @@ export default function CartPage() {
           {items.map((item) => (
             <div key={item.cartItemId} className="flex gap-4 p-4 border rounded-xl">
               <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-muted shrink-0">
-                <Image src={item.imageUrl} alt={item.name} fill className="object-cover" sizes="96px" />
+                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between">

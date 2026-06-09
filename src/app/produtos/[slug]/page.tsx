@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,13 +40,10 @@ export default async function ProductDetailPage({ params }: Props) {
         {/* Image */}
         <div className="relative aspect-square bg-muted rounded-xl overflow-hidden">
           {product.imageUrl ? (
-            <Image
+            <img
               src={product.imageUrl}
               alt={product.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
+              className="w-full h-full object-cover"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-8xl bg-gradient-to-br from-primary/10 to-blue-900/30">

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Download, Package, ImageIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,7 +104,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 <div key={item.id} className="flex gap-4 p-4 border rounded-lg">
                   <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted shrink-0">
                     {item.upload?.previewUrl ? (
-                      <Image src={item.upload.previewUrl} alt="Preview" fill className="object-cover" sizes="80px" />
+                      <img src={item.upload.previewUrl} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
