@@ -26,6 +26,7 @@ export function Footer() {
               <li><Link href="/categorias/memes" className="hover:text-foreground transition-colors">Memes</Link></li>
               <li><Link href="/categorias/musica" className="hover:text-foreground transition-colors">Música</Link></li>
               <li><Link href="/categorias/games" className="hover:text-foreground transition-colors">Games</Link></li>
+              <li><Link href="/categorias/empresas-marcas" className="hover:text-foreground transition-colors">Empresas</Link></li>
             </ul>
           </div>
 

@@ -7,16 +7,16 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: "#fdf2f8",
-          100: "#fce7f3",
-          200: "#fbcfe8",
-          300: "#f9a8d4",
-          400: "#f472b6",
-          500: "#ec4899",
-          600: "#db2777",
-          700: "#be185d",
-          800: "#9d174d",
-          900: "#831843",
+          50: "#eef4ff",
+          100: "#d9e6ff",
+          200: "#bcd0ff",
+          300: "#8eb2ff",
+          400: "#5988ff",
+          500: "#335eff",   // Ocean blue primary
+          600: "#1a3ef5",
+          700: "#142fe1",
+          800: "#1629b6",
+          900: "#18288f",
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -53,7 +53,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
-        "shimmer": {
+        shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },

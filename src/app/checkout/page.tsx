@@ -72,7 +72,7 @@ export default function CheckoutPage() {
       const order = await res.json();
       const protocolo = order.id.slice(-8).toUpperCase();
 
-      // Monta itens
+      // Monta itens como texto puro
       const itensTexto = items
         .map((i) => {
           const nome = i.itemType === "personalizado" ? "Figurinha Personalizada" : i.name;
@@ -80,15 +80,15 @@ export default function CheckoutPage() {
         })
         .join("\n");
 
-      // WhatsApp
-      const msg =
-        `*NOVO PEDIDO - STICKERSHOP*%0A%0A` +
-        `*Protocolo:* ${protocolo}%0A` +
-        `*Total:* ${totalStr}%0A%0A` +
-        `*ITENS:*%0A${encodeURIComponent(itensTexto)}%0A%0A` +
-        `*ADMIN:*%0A` +
-        `stickershop.onrender.com/admin%0A` +
-        `admin@stickershop.com.br / admin123`;
+      // Monta mensagem completa e codifica UMA VEZ
+      const mensagemPura =
+        `*NOVO PEDIDO - STICKERSHOP*\n\n` +
+        `*Protocolo:* ${protocolo}\n` +
+        `*Total:* ${totalStr}\n\n` +
+        `*ITENS:*\n${itensTexto}\n\n` +
+        `_Obrigado pela preferência! 🎉_`;
+
+      const msg = encodeURIComponent(mensagemPura);
 
       clearCart();
 

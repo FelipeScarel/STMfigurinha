@@ -50,12 +50,12 @@ export default async function ProductDetailPage({ params }: Props) {
               priority
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-8xl bg-gradient-to-br from-primary/10 to-purple-100">
+            <div className="w-full h-full flex items-center justify-center text-8xl bg-gradient-to-br from-primary/10 to-blue-900/30">
               🎴
             </div>
           )}
           {product.type === "personalizada" && (
-            <Badge className="absolute top-4 left-4 bg-purple-600 text-sm px-3 py-1">
+            <Badge className="absolute top-4 left-4 bg-blue-600 text-sm px-3 py-1">
               Personalizável
             </Badge>
           )}
@@ -84,6 +84,7 @@ export default async function ProductDetailPage({ params }: Props) {
               imageUrl: product.imageUrl,
               type: product.type,
               basePrice: product.basePrice,
+              showPrice: product.showPrice,
             }}
             variants={product.variants.map((v) => ({
               id: v.id,

@@ -3,7 +3,7 @@ services:
     name: stickershop
     runtime: node
     plan: starter
-    buildCommand: npm install && npx prisma generate && npx prisma db push && npx tsx prisma/seed.ts
+    buildCommand: npm install && sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma && npx prisma generate && npx prisma db push --accept-data-loss && npx tsx prisma/seed.ts
     startCommand: npm start
     envVars:
       - key: DATABASE_URL
@@ -13,9 +13,17 @@ services:
       - key: AUTH_SECRET
         generateValue: true
       - key: AUTH_URL
-        value: https://stickershop.onrender.com
+        sync: false
       - key: NODE_ENV
         value: production
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: UPLOAD_PROVIDER
+        value: local
 
 databases:
   - name: stickershop-db

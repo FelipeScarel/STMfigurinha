@@ -101,10 +101,15 @@ export default function PersonalizarPage() {
     try {
       const formData = new FormData();
       formData.append("file", uploadedFile);
-      formData.append("cropX", String(croppedArea.x));
-      formData.append("cropY", String(croppedArea.y));
-      formData.append("cropWidth", String(croppedArea.width));
-      formData.append("cropHeight", String(croppedArea.height));
+      // Envia coordenadas de crop em pixels (croppedArea já está em pixels da imagem original)
+      const safeX = Math.max(0, Math.round(croppedArea.x));
+      const safeY = Math.max(0, Math.round(croppedArea.y));
+      const safeW = Math.max(1, Math.round(croppedArea.width));
+      const safeH = Math.max(1, Math.round(croppedArea.height));
+      formData.append("cropX", String(safeX));
+      formData.append("cropY", String(safeY));
+      formData.append("cropWidth", String(safeW));
+      formData.append("cropHeight", String(safeH));
 
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Upload failed");
@@ -211,12 +216,12 @@ export default function PersonalizarPage() {
           {/* Preview */}
           <div className="flex justify-center">
             <div className={`relative w-56 h-56 rounded-xl overflow-hidden shadow-lg ${
-              selectedFinish === "holografico" ? "ring-4 ring-purple-400" :
-              selectedFinish === "brilhante" ? "ring-4 ring-blue-200" : "ring-4 ring-gray-200"
+              selectedFinish === "holografico" ? "ring-4 ring-cyan-400" :
+              selectedFinish === "brilhante" ? "ring-4 ring-blue-400" : "ring-4 ring-gray-600"
             }`}>
               <Image src={croppedImageUrl} alt="Preview" fill className="object-cover" sizes="224px" />
               {selectedFinish === "holografico" && (
-                <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 via-transparent to-blue-500/20" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-transparent to-blue-500/20" />
               )}
             </div>
           </div>

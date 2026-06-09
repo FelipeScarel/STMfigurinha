@@ -6,10 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(value: number): string {
+  const safe = isNaN(value) || value === null || value === undefined ? 0 : value;
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(value);
+  }).format(safe);
 }
 
 export function slugify(text: string): string {
@@ -37,7 +38,7 @@ export function orderStatusColor(status: string): string {
   const map: Record<string, string> = {
     aguardando_pagamento: "bg-yellow-100 text-yellow-800",
     pago: "bg-blue-100 text-blue-800",
-    em_producao: "bg-purple-100 text-purple-800",
+    em_producao: "bg-cyan-500/15 text-cyan-400",
     enviado: "bg-orange-100 text-orange-800",
     entregue: "bg-green-100 text-green-800",
     cancelado: "bg-red-100 text-red-800",

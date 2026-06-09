@@ -47,7 +47,7 @@ export function CartDrawer({ onClose }: { onClose: () => void }) {
                 {item.size} • {item.finish}
               </p>
               {item.itemType === "personalizado" && (
-                <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">
+                <span className="text-[10px] bg-blue-500/15 text-blue-400 px-1.5 py-0.5 rounded-full">
                   Personalizada
                 </span>
               )}

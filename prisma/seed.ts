@@ -55,6 +55,7 @@ async function main() {
     prisma.category.create({ data: { name: "Música", slug: "musica", description: "Bandas, artistas e ícones musicais", order: 4 } }),
     prisma.category.create({ data: { name: "Games", slug: "games", description: "Personagens e momentos dos games", order: 5 } }),
     prisma.category.create({ data: { name: "Séries e Filmes", slug: "series-filmes", description: "Cenas icônicas do cinema e TV", order: 6 } }),
+    prisma.category.create({ data: { name: "Empresas e Marcas", slug: "empresas-marcas", description: "Logotipos e identidade visual da sua marca em figurinhas personalizadas", order: 7 } }),
   ]);
   console.log("📁 Categorias criadas");
 

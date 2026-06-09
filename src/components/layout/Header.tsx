@@ -24,6 +24,7 @@ const navLinks = [
   { href: "/categorias/memes", label: "Memes" },
   { href: "/categorias/musica", label: "Música" },
   { href: "/categorias/games", label: "Games" },
+  { href: "/categorias/empresas-marcas", label: "Empresas" },
 ];
 
 export function Header() {

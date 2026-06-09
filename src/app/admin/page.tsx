@@ -69,7 +69,7 @@ export default function AdminDashboard() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl text-purple-600 bg-purple-100">
+              <div className="p-3 rounded-xl text-cyan-600 bg-cyan-100">
                 <Package className="h-5 w-5" />
               </div>
               <div>

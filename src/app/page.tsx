@@ -14,13 +14,23 @@ export default async function HomePage() {
 
   const featuredProducts = await prisma.product.findMany({
     where: { active: true, featured: true },
-    include: { category: true, variants: true },
+    select: {
+      id: true, name: true, slug: true, basePrice: true, showPrice: true,
+      imageUrl: true, type: true, featured: true,
+      category: { select: { id: true, name: true, slug: true } },
+      variants: { select: { size: true, finish: true, priceExtra: true, stock: true } },
+    },
     take: 8,
   });
 
   const newProducts = await prisma.product.findMany({
     where: { active: true },
-    include: { category: true, variants: true },
+    select: {
+      id: true, name: true, slug: true, basePrice: true, showPrice: true,
+      imageUrl: true, type: true, featured: true,
+      category: { select: { id: true, name: true, slug: true } },
+      variants: { select: { size: true, finish: true, priceExtra: true, stock: true } },
+    },
     orderBy: { createdAt: "desc" },
     take: 8,
   });
@@ -28,7 +38,7 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero Banner */}
-      <section className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-purple-100 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-blue-900/20 overflow-hidden">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="space-y-6">
@@ -116,7 +126,7 @@ export default async function HomePage() {
 
       {/* CTA Personalização */}
       <section className="container mx-auto px-4 py-16">
-        <div className="relative bg-gradient-to-r from-primary to-purple-600 rounded-2xl p-8 md:p-12 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-primary to-blue-600 rounded-2xl p-8 md:p-12 overflow-hidden">
           <div className="absolute inset-0 bg-black/10" />
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-white space-y-3">

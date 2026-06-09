@@ -10,6 +10,7 @@ type ProductWithRelations = {
   name: string;
   slug: string;
   basePrice: number;
+  showPrice?: boolean;
   imageUrl: string | null;
   type: string;
   featured: boolean;
@@ -20,6 +21,7 @@ type ProductWithRelations = {
 export function ProductCard({ product }: { product: ProductWithRelations }) {
   const minPrice = product.basePrice + Math.min(...product.variants.map((v) => v.priceExtra));
   const totalStock = product.variants.reduce((s, v) => s + v.stock, 0);
+  const showPrice = product.showPrice !== false;
 
   return (
     <Link href={`/produtos/${product.slug}`}>
@@ -35,12 +37,12 @@ export function ProductCard({ product }: { product: ProductWithRelations }) {
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-purple-100">
+            <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-blue-900/30">
               🎴
             </div>
           )}
           {product.type === "personalizada" && (
-            <Badge className="absolute top-2 left-2 bg-purple-600">Personalizável</Badge>
+            <Badge className="absolute top-2 left-2 bg-blue-600">Personalizável</Badge>
           )}
           {totalStock === 0 && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -59,7 +61,7 @@ export function ProductCard({ product }: { product: ProductWithRelations }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-lg font-bold text-primary">
-                {formatCurrency(minPrice)}
+                {showPrice ? formatCurrency(minPrice) : "Valor a Consultar"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {product.variants.length} opções

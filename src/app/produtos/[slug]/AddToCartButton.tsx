@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Minus, Plus } from "lucide-react";
+import { ShoppingCart, Minus, Plus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart";
@@ -23,6 +23,7 @@ type ProductInfo = {
   imageUrl: string | null;
   type: string;
   basePrice: number;
+  showPrice?: boolean;
 };
 
 export function AddToCartButton({
@@ -35,6 +36,7 @@ export function AddToCartButton({
   const [selectedSize, setSelectedSize] = useState(variants[0]?.size || "");
   const [selectedFinish, setSelectedFinish] = useState(variants[0]?.finish || "");
   const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
   const currentVariant = variants.find(
@@ -53,22 +55,48 @@ export function AddToCartButton({
     .map((v) => v.finish);
 
   function handleAddToCart() {
-    if (!currentVariant || !inStock) return;
+    if (!currentVariant) {
+      toast.error("Selecione um tamanho e acabamento disponível.");
+      return;
+    }
+    if (!inStock) {
+      toast.error("Este item está fora de estoque.");
+      return;
+    }
 
-    addItem({
-      productId: product.id,
-      variantId: currentVariant.id,
-      itemType: product.type === "personalizada" ? "personalizado" : "produto_pronto",
-      name: product.name,
-      imageUrl: product.imageUrl || "/placeholder.png",
-      size: SIZE_LABELS[selectedSize] || selectedSize,
-      finish: FINISH_LABELS[selectedFinish] || selectedFinish,
-      unitPrice: price,
-      quantity,
-      categoryId: null,
-    });
+    try {
+      addItem({
+        productId: product.id,
+        variantId: currentVariant.id,
+        itemType: product.type === "personalizada" ? "personalizado" : "produto_pronto",
+        name: product.name,
+        imageUrl: product.imageUrl || "/placeholder.png",
+        size: SIZE_LABELS[selectedSize] || selectedSize,
+        finish: FINISH_LABELS[selectedFinish] || selectedFinish,
+        unitPrice: price,
+        quantity,
+        categoryId: null,
+      });
 
-    toast.success(`${product.name} adicionado ao carrinho!`);
+      setAdded(true);
+      toast.success(`${product.name} adicionado ao carrinho!`);
+      setTimeout(() => setAdded(false), 1500);
+    } catch (err) {
+      console.error("Erro ao adicionar ao carrinho:", err);
+      toast.error("Erro ao adicionar ao carrinho. Tente novamente.");
+    }
+  }
+
+  // Se não houver variantes
+  if (!variants.length) {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center gap-2 text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg p-4">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <p className="text-sm">Este produto ainda não possui opções de compra disponíveis.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -91,7 +119,7 @@ export function AddToCartButton({
               }}
               className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
                 selectedSize === size
-                  ? "border-primary bg-primary/10 text-primary"
+                  ? "border-primary bg-primary/15 text-primary"
                   : "border-border hover:border-primary/50"
               }`}
             >
@@ -114,7 +142,7 @@ export function AddToCartButton({
                 disabled={!available}
                 className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
                   selectedFinish === finish
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-primary/15 text-primary"
                     : available
                     ? "border-border hover:border-primary/50"
                     : "border-border opacity-40 cursor-not-allowed line-through"
@@ -130,9 +158,9 @@ export function AddToCartButton({
       {/* Price */}
       <div className="flex items-baseline gap-2">
         <span className="text-3xl font-bold text-primary">
-          {formatCurrency(price)}
+          {product.showPrice !== false ? formatCurrency(price) : "Valor a Consultar"}
         </span>
-        {currentVariant?.priceExtra > 0 && (
+        {product.showPrice !== false && currentVariant?.priceExtra > 0 && (
           <span className="text-sm text-muted-foreground">
             ({formatCurrency(product.basePrice)} + {formatCurrency(currentVariant.priceExtra)})
           </span>
@@ -140,9 +168,13 @@ export function AddToCartButton({
       </div>
 
       {/* Stock */}
-      {currentVariant && (
+      {currentVariant ? (
         <Badge variant={inStock ? "secondary" : "destructive"} className="text-xs">
           {inStock ? `${currentVariant.stock} em estoque` : "Indisponível"}
+        </Badge>
+      ) : (
+        <Badge variant="secondary" className="text-xs">
+          Selecione uma opção
         </Badge>
       )}
 
@@ -172,11 +204,17 @@ export function AddToCartButton({
         <Button
           className="flex-1"
           size="lg"
-          disabled={!inStock}
+          disabled={!inStock || !currentVariant}
           onClick={handleAddToCart}
         >
-          <ShoppingCart className="mr-2 h-5 w-5" />
-          Adicionar ao Carrinho
+          {added ? (
+            <>✓ Adicionado!</>
+          ) : (
+            <>
+              <ShoppingCart className="mr-2 h-5 w-5" />
+              {!inStock ? "Indisponível" : !currentVariant ? "Selecione opções" : "Adicionar ao Carrinho"}
+            </>
+          )}
         </Button>
       </div>
     </div>

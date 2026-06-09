@@ -1,6 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+// UUID generator seguro (funciona em qualquer ambiente)
+function generateId(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
 export type CartItemType = {
   cartItemId: string;
   productId: string | null;
@@ -18,6 +27,7 @@ export type CartItemType = {
 
 type CartState = {
   items: CartItemType[];
+  _hydrated: boolean;
   addItem: (item: Omit<CartItemType, "cartItemId" | "quantity"> & { quantity?: number }) => void;
   removeItem: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
@@ -30,10 +40,11 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      _hydrated: false,
 
       addItem: (item) => {
         const items = get().items;
-        // Verifica se já existe item idêntico (mesmo produto+variante+upload)
+        // Verifica se já existe item idêntico (mesmo produto+variante+upload+tamanho+acabamento)
         const existing = items.find(
           (i) =>
             i.productId === item.productId &&
@@ -57,7 +68,7 @@ export const useCartStore = create<CartState>()(
               ...items,
               {
                 ...item,
-                cartItemId: crypto.randomUUID(),
+                cartItemId: generateId(),
                 quantity: item.quantity || 1,
               },
             ],
@@ -88,6 +99,28 @@ export const useCartStore = create<CartState>()(
       subtotal: () =>
         get().items.reduce((s, i) => s + i.unitPrice * i.quantity, 0),
     }),
-    { name: "stickershop-cart" }
+    {
+      name: "stickershop-cart",
+      // resolve problema de hidratação com Next.js SSR
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state._hydrated = true;
+        }
+      },
+      // garante que dados inválidos não quebrem a store
+      merge: (persisted: any, current) => {
+        if (!persisted || !Array.isArray(persisted.items)) {
+          return current;
+        }
+        return {
+          ...current,
+          ...persisted,
+          items: (persisted.items || []).filter(
+            (i: any) => i && i.cartItemId && i.name
+          ),
+          _hydrated: true,
+        };
+      },
+    }
   )
 );
