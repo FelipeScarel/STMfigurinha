@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +21,7 @@ type ProductWithRelations = {
 };
 
 export function ProductCard({ product }: { product: ProductWithRelations }) {
+  const [imgError, setImgError] = useState(false);
   const minPrice = product.basePrice + Math.min(...product.variants.map((v) => v.priceExtra));
   const totalStock = product.variants.reduce((s, v) => s + v.stock, 0);
   const showPrice = product.showPrice !== false;
@@ -27,23 +31,13 @@ export function ProductCard({ product }: { product: ProductWithRelations }) {
       <Card className="group h-full overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1">
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
-          {product.imageUrl ? (
+          {product.imageUrl && !imgError ? (
             <img
               src={product.imageUrl}
               alt={product.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
-              onError={(e) => {
-                const el = e.target as HTMLImageElement;
-                el.style.display = "none";
-                const parent = el.parentElement;
-                if (parent && !parent.querySelector(".img-fallback")) {
-                  const fallback = document.createElement("div");
-                  fallback.className = "img-fallback w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-blue-900/30";
-                  fallback.textContent = "🎴";
-                  parent.appendChild(fallback);
-                }
-              }}
+              onError={() => setImgError(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-blue-900/30">
